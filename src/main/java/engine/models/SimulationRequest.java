@@ -7,4 +7,8 @@ public class SimulationRequest {
     public String operation;
 
     public int[] values;
+
+    public int target;
+
+    public String algorithm;
 }
