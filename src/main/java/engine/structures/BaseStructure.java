@@ -19,7 +19,11 @@ public abstract class BaseStructure {
     protected abstract void execute(SimulationRequest request);
 
     protected void addStep(String type, String message, Object stateSnapshot) {
-        steps.add(new Step(type, message, stateSnapshot));
+        if (stateSnapshot instanceof List<?> list) {
+            steps.add(new Step(type, message, new ArrayList<>(list)));
+        } else {
+            steps.add(new Step(type, message, stateSnapshot));
+        }
     }
 
     protected void addError(String message, Object stateSnapshot) {
