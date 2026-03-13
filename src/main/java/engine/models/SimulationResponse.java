@@ -5,5 +5,5 @@ import java.util.List;
 public class SimulationResponse {
     public String structure;
     public String operation;
-    public List<SimulationStep> steps;
+    public List<Step> steps;
 }

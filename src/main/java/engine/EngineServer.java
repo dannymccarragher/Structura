@@ -1,29 +1,75 @@
 package engine;
 
+import com.google.gson.Gson;
+import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpExchange;
 import engine.models.SimulationRequest;
+import engine.models.SimulationResponse;
 import engine.models.Step;
-import engine.simulator.Simulator;
 
-import java.util.*;
+import java.io.*;
+import java.net.InetSocketAddress;
+import java.util.List;
 
 public class EngineServer {
 
-    public static void main(String[] args) {
+    private static final Gson gson = new Gson();
 
-        SimulationRequest request = new SimulationRequest();
+    public static void main(String[] args) throws IOException {
+        HttpServer server = HttpServer.create(new InetSocketAddress(3001), 0);
+        server.createContext("/simulate", EngineServer::handleSimulate);
+        server.setExecutor(null);
+        System.out.println("Server running on port 3001");
+        server.start();
+    }
 
-        request.structure = "Stack";
-        request.operation = "push";
-        request.values = new int[]{10, 20, 30};
+    private static void handleSimulate(HttpExchange exchange) throws IOException {
+        // CORS headers
+        exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
+        exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
 
-        List<Step> steps = Simulator.run(request);
+        // Preflight
+        if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
+            exchange.sendResponseHeaders(204, -1);
+            return;
+        }
 
-        for (Step step : steps) {
-            System.out.println("Action: " + step.getType());
-            System.out.println("Message: " + step.getMessage());
-            System.out.println("State: " + step.getStateSnapshot());
-            System.out.println("--------------------");
+        if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
+            exchange.sendResponseHeaders(405, -1);
+            return;
+        }
+
+        try {
+            // Parse request
+            String body = new String(exchange.getRequestBody().readAllBytes());
+            SimulationRequest request = gson.fromJson(body, SimulationRequest.class);
+
+            // Dispatch
+            List<Step> steps = SimulationDispatcher.dispatch(request);
+
+            // Build response
+            SimulationResponse response = new SimulationResponse();
+            response.structure = request.structure;
+            response.operation = request.operation;
+            response.steps = steps;
+
+            // Send response
+            String json = gson.toJson(response);
+            byte[] bytes = json.getBytes();
+            exchange.getResponseHeaders().add("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, bytes.length);
+            exchange.getResponseBody().write(bytes);
+            exchange.getResponseBody().close();
+
+        } catch (Exception e) {
+            String error = gson.toJson(new ErrorResponse(e.getMessage()));
+            byte[] bytes = error.getBytes();
+            exchange.sendResponseHeaders(500, bytes.length);
+            exchange.getResponseBody().write(bytes);
+            exchange.getResponseBody().close();
         }
     }
 
+    record ErrorResponse(String error) {}
 }

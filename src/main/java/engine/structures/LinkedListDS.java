@@ -150,7 +150,7 @@ public class LinkedListDS extends BaseStructure {
 
     private void reverse() {
         addStep("REVERSE", "Starting reverse", toList());
-        Node prev = null
+        Node prev = null;
         Node curr = head;
         while (curr != null) {
             Node next = curr.next;
