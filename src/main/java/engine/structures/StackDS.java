@@ -1,89 +1,52 @@
 package engine.structures;
 
 import engine.models.SimulationRequest;
-import engine.models.Step;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class StackDS {
+public class StackDS extends BaseStructure {
 
     private List<Integer> stack = new ArrayList<>();
 
-    public List<Step> run(SimulationRequest request) {
-        List<Step> steps = new ArrayList<>();
-        String op = request.operation.toLowerCase();
-
-        if (op.equals("push")) {
-            push(request.values, steps);
-        } else if (op.equals("pop")) {
-            pop(steps);
-        } else if (op.equals("peek")) {
-            peek(steps);
-        } else if (op.equals("isempty")) {
-            isEmpty(steps);
-        } else {
-            steps.add(new Step(
-                    "ERROR",
-                    "Invalid operation: " + request.operation,
-                    new ArrayList<>(stack)
-            ));
+    @Override
+    protected void execute(SimulationRequest request) {
+        switch (request.operation.toLowerCase()) {
+            case "push"    -> push(request.values);
+            case "pop"     -> pop();
+            case "peek"    -> peek();
+            case "isempty" -> isEmpty();
+            default        -> addError("Invalid operation: " + request.operation, stack);
         }
-
-        return steps;
     }
 
-    private void push(int[] values, List<Step> steps) {
+    private void push(int[] values) {
         for (int value : values) {
             stack.add(value);
-            steps.add(new Step(
-                    "PUSH",
-                    "Pushed " + value + " onto stack",
-                    new ArrayList<>(stack)
-            ));
+            addStep("PUSH", "Pushed " + value + " onto stack", stack);
         }
     }
 
-    private void pop(List<Step> steps) {
+    private void pop() {
         if (stack.isEmpty()) {
-            steps.add(new Step(
-                    "ERROR",
-                    "Cannot pop from empty stack",
-                    new ArrayList<>(stack)
-            ));
+            addError("Cannot pop from empty stack", stack);
         } else {
             int removed = stack.remove(stack.size() - 1);
-            steps.add(new Step(
-                    "POP",
-                    "Popped " + removed,
-                    new ArrayList<>(stack)
-            ));
+            addStep("POP", "Popped " + removed, stack);
         }
     }
 
-    private void peek(List<Step> steps) {
+    private void peek() {
         if (!stack.isEmpty()) {
             int top = stack.get(stack.size() - 1);
-            steps.add(new Step(
-                    "PEEK",
-                    "Top element is " + top,
-                    new ArrayList<>(stack)
-            ));
+            addStep("PEEK", "Top element is " + top, stack);
         } else {
-            steps.add(new Step(
-                    "ERROR",
-                    "Cannot peek from empty stack",
-                    new ArrayList<>(stack)
-            ));
+            addError("Cannot peek from empty stack", stack);
         }
     }
 
-    private void isEmpty(List<Step> steps) {
+    private void isEmpty() {
         boolean empty = stack.isEmpty();
-        steps.add(new Step(
-                "ISEMPTY",
-                empty ? "Stack is empty" : "Stack is not empty",
-                new ArrayList<>(stack)
-        ));
+        addStep("ISEMPTY", empty ? "Stack is empty" : "Stack is not empty", stack);
     }
 }
