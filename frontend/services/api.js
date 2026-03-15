@@ -15,3 +15,16 @@ export async function simulate(structure, operation, values, target) {
 
     return response.json();
 }
+
+export async function reset(structure) {
+    const response = await fetch(`${BASE_URL}/reset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ structure })
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Reset failed");
+    }
+}

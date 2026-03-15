@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import styles from "./InputPanel.module.css";
 
 const STRUCTURES = {
     stack:      ["push", "pop", "peek", "isempty"],
@@ -7,25 +8,19 @@ const STRUCTURES = {
     linkedlist: ["insertathead", "insertattail", "insertatindex", "deleteathead", "deleteattail", "deleteatindex", "search", "reverse"]
 };
 
-// operations that need a target value instead of array values
 const TARGET_OPS = ["search", "deleteatindex", "contains"];
-
-// operations that need no input at all
 const NO_INPUT_OPS = ["pop", "peek", "isempty", "size", "deleteathead", "deleteattail", "reverse"];
 
-export default function InputPanel({ onRun, loading }) {
-    const [structure, setStructure] = useState("stack");
-    const [operation, setOperation] = useState("push");
+export default function InputPanel({ structure, onRun, loading }) {
+    const [operation, setOperation] = useState(STRUCTURES[structure][0]);
     const [valuesInput, setValuesInput] = useState("");
     const [target, setTarget] = useState("");
 
-    const handleStructureChange = (e) => {
-        const s = e.target.value;
-        setStructure(s);
-        setOperation(STRUCTURES[s][0]);
+    useEffect(() => {
+        setOperation(STRUCTURES[structure][0]);
         setValuesInput("");
         setTarget("");
-    };
+    }, [structure]);
 
     const handleSubmit = () => {
         const values = valuesInput
@@ -33,26 +28,21 @@ export default function InputPanel({ onRun, loading }) {
             .map(v => parseInt(v.trim()))
             .filter(v => !isNaN(v));
 
-        onRun(structure, operation, values, parseInt(target) || 0);
+        onRun(operation, values, parseInt(target) || 0);
     };
 
     const needsTarget = TARGET_OPS.includes(operation);
     const needsValues = !NO_INPUT_OPS.includes(operation);
 
     return (
-        <div className="input-panel">
-            <div className="input-panel__row">
-                <label>Structure</label>
-                <select value={structure} onChange={handleStructureChange}>
-                    {Object.keys(STRUCTURES).map(s => (
-                        <option key={s} value={s}>{s}</option>
-                    ))}
-                </select>
-            </div>
-
-            <div className="input-panel__row">
-                <label>Operation</label>
-                <select value={operation} onChange={e => setOperation(e.target.value)}>
+        <div className={styles.panel}>
+            <div className={styles.row}>
+                <label className={styles.label}>Operation</label>
+                <select
+                    className={styles.select}
+                    value={operation}
+                    onChange={e => setOperation(e.target.value)}
+                >
                     {STRUCTURES[structure].map(op => (
                         <option key={op} value={op}>{op}</option>
                     ))}
@@ -60,9 +50,10 @@ export default function InputPanel({ onRun, loading }) {
             </div>
 
             {needsValues && !needsTarget && (
-                <div className="input-panel__row">
-                    <label>Values</label>
+                <div className={styles.row}>
+                    <label className={styles.label}>Values</label>
                     <input
+                        className={styles.input}
                         type="text"
                         placeholder="e.g. 1, 2, 3"
                         value={valuesInput}
@@ -72,9 +63,10 @@ export default function InputPanel({ onRun, loading }) {
             )}
 
             {needsTarget && (
-                <div className="input-panel__row">
-                    <label>Target</label>
+                <div className={styles.row}>
+                    <label className={styles.label}>Target</label>
                     <input
+                        className={styles.input}
                         type="number"
                         placeholder="e.g. 5"
                         value={target}
@@ -83,7 +75,7 @@ export default function InputPanel({ onRun, loading }) {
                 </div>
             )}
 
-            <button onClick={handleSubmit} disabled={loading}>
+            <button className={styles.runBtn} onClick={handleSubmit} disabled={loading}>
                 {loading ? "Running..." : "Run"}
             </button>
         </div>

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { simulate } from "../services/api";
+import { simulate, reset as resetAPI } from "../services/api";
 
 export default function useSimulation() {
     const [steps, setSteps] = useState([]);
@@ -10,6 +10,11 @@ export default function useSimulation() {
     const [error, setError] = useState(null);
     const intervalRef = useRef(null);
 
+    const stopPlayback = () => {
+        clearInterval(intervalRef.current);
+        setIsPlaying(false);
+    };
+
     const run = useCallback(async (structure, operation, values, target) => {
         try {
             setLoading(true);
@@ -17,8 +22,12 @@ export default function useSimulation() {
             stopPlayback();
 
             const data = await simulate(structure, operation, values, target);
-            setSteps(data.steps);
-            setCurrentStep(0);
+
+            setSteps(prev => {
+                const updated = [...prev, ...data.steps];
+                setCurrentStep(updated.length - 1);
+                return updated;
+            });
         } catch (err) {
             setError(err.message);
         } finally {
@@ -26,10 +35,17 @@ export default function useSimulation() {
         }
     }, []);
 
-    const stopPlayback = () => {
-        clearInterval(intervalRef.current);
-        setIsPlaying(false);
-    };
+    const reset = useCallback(async (structure) => {
+        try {
+            stopPlayback();
+            await resetAPI(structure);
+            setSteps([]);
+            setCurrentStep(0);
+            setError(null);
+        } catch (err) {
+            setError(err.message);
+        }
+    }, []);
 
     const play = useCallback(() => {
         if (steps.length === 0) return;
@@ -53,11 +69,6 @@ export default function useSimulation() {
 
     const prev = useCallback(() => {
         setCurrentStep(prev => Math.max(prev - 1, 0));
-    }, []);
-
-    const reset = useCallback(() => {
-        stopPlayback();
-        setCurrentStep(0);
     }, []);
 
     return {

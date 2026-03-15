@@ -70,6 +70,64 @@
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
+.structureTabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.tabBtn {
+    padding: 7px 10px;
+    background-color: #2d2d2d;
+    border: 1px solid #3c3c3c;
+    border-radius: 6px;
+    color: #858585;
+    font-size: 0.8rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.tabBtn:hover:not(:disabled) {
+    border-color: #569cd6;
+    color: #d4d4d4;
+}
+
+.tabBtnActive {
+    background-color: #1e3a5f;
+    border-color: #569cd6;
+    color: #569cd6;
+    font-weight: 600;
+}
+
+.tabBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.resetBtn {
+    width: 100%;
+    padding: 7px;
+    background-color: transparent;
+    border: 1px solid #3c3c3c;
+    border-radius: 6px;
+    color: #858585;
+    font-size: 0.8rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.resetBtn:hover:not(:disabled) {
+    border-color: #f44747;
+    color: #f44747;
+}
+
+.resetBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 .error {
     position: fixed;
     top: 20px;
