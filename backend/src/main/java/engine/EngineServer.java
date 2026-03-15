@@ -18,9 +18,18 @@ public class EngineServer {
     public static void main(String[] args) throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(3001), 0);
         server.createContext("/simulate", EngineServer::handleSimulate);
+        server.createContext("/reset", EngineServer::handleReset);
         server.setExecutor(null);
         System.out.println("Server running on port 3001");
         server.start();
+    }
+
+    private static void handleReset(HttpExchange exchange) throws IOException {
+        exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        String body = new String(exchange.getRequestBody().readAllBytes());
+        SimulationRequest request = gson.fromJson(body, SimulationRequest.class);
+        dispatcher.reset(request.structure.toLowerCase());
+        exchange.sendResponseHeaders(204, -1);
     }
 
     private static void handleSimulate(HttpExchange exchange) throws IOException {
@@ -71,5 +80,6 @@ public class EngineServer {
         }
     }
 
-    record ErrorResponse(String error) {}
+    record ErrorResponse(String error) {
+    }
 }
